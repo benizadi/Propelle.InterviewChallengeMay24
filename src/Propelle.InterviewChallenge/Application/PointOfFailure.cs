@@ -15,7 +15,7 @@
 
             if (val < percentageChanceOfFailure)
             {
-                throw new TransientException();
+                //throw new TransientException();
             }
         }
     }
