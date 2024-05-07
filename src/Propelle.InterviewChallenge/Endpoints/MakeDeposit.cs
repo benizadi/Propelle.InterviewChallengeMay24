@@ -1,4 +1,5 @@
 ﻿using FastEndpoints;
+using Polly;
 using Propelle.InterviewChallenge.Application;
 using Propelle.InterviewChallenge.Application.Domain;
 using Propelle.InterviewChallenge.Application.Domain.Events;
@@ -36,18 +37,19 @@ namespace Propelle.InterviewChallenge.Endpoints
             {
                 Post("/api/deposits/{UserId}");
             }
+            
+            private readonly IAsyncPolicy<int>  _retryPolicy = 
+                Polly.Policy<int>
+                    .Handle<Exception>() // Ideally we should tailor the type of exception 
+                    .RetryAsync(5);
 
             public override async Task HandleAsync(Request req, CancellationToken ct)
             {
                 var deposit = new Deposit(req.UserId, req.Amount);
                 
-                var duplicateDeposit = _paymentsContext.Deposits.FirstOrDefault(x => x.UserId == deposit.UserId && x.Amount == req.Amount);
-                
-                if(duplicateDeposit !=  null) return;
-                
                 _paymentsContext.Deposits.Add(deposit);
 
-                await _paymentsContext.SaveChangesAsync(ct);
+                await _retryPolicy.ExecuteAsync(()=> _paymentsContext.SaveChangesAsync(ct));
 
                 await _eventBus.Publish(new DepositMade
                 {
