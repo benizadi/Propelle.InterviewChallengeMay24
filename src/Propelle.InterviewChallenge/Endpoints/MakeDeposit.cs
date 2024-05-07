@@ -40,6 +40,11 @@ namespace Propelle.InterviewChallenge.Endpoints
             public override async Task HandleAsync(Request req, CancellationToken ct)
             {
                 var deposit = new Deposit(req.UserId, req.Amount);
+                
+                var duplicateDeposit = _paymentsContext.Deposits.FirstOrDefault(x => x.UserId == deposit.UserId && x.Amount == req.Amount);
+                
+                if(duplicateDeposit !=  null) return;
+                
                 _paymentsContext.Deposits.Add(deposit);
 
                 await _paymentsContext.SaveChangesAsync(ct);
