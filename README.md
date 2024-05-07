@@ -1,32 +1,30 @@
-# Propelle.InterviewChallenge
+# The approach to the problems
 
-## Background
+Mainly debugging and understanding the root cause of the problem was a challenge here.
+We were dealing with 2 separate problems entangled (DB inconsistency and 3rd Party Fragility)
 
-At Propelle, we're expecting customers to make deposits with us so we can make investments on their behalf.
-In this sample application, a customer can make a deposit through an API request and it is then automatically submitted to a fictional investment partner, SmartInvest.
-Although this sounds like a simple problem, it's not always that easy. There are 2 technical issues plaguing the application:
+A very simple Retry logic handled both problems here.
 
-1. The SmartInvest API is unreliable and can often throw transient exceptions
-1. The Database can go down for maintenance at any time
+# Assumptions
+We are not looking into implementing best practices or patterns here.
+We are not looking into refactoring.
+We are completely focusing on the main problems stated in the challenge.
 
-Although this application doesn't use a real database or consume a real API, the transient issues caused by these 2 services
-are simulated to have a 20% chance of failing whenever they are invoked. So when large volumes of deposits are coming in, we need to be sure that we can
-recover from these failures and ensure that the deposits are processed.
+# In the real world
 
-## Your Challenge
+- The database issue could be handled in a more mannered way using UnitOfWork
+- Repository could get help from EfCore Optimistic Concurrency handling and Duplication detection
+- 3rd Party service exceptions could be identified and defined in the retry policy
+- I would have used the Service bus native retry policy if available
+  - for instance for Azure Service bus https://learn.microsoft.com/en-us/azure/architecture/best-practices/retry-service-specific#service-bus  
 
-There is a test class (MakeDepositTests) that simulates 100 deposits being made to the API. These 2 tests check that that
-100 deposits have been stored and submitted to SmartInvest respectively. One of these tests is failing - for some reason there are more deposits being
-stored than are being sent to SmartInvest.
+# Alternative solution
 
-Your challenge is to get all the tests passing, but there are a few rules:
+I lean more towards implementing 3rd party services using Direct API Calls. This way you get responses immediately and it gives you the flexibility of reacting accordingly.
 
-- You can't change any code in the tests
-- You can't change the PointOfFailure class
-- You can't remove invocations of the PointOfFailure.SimulatePotentialFailure() method
+# Notes: (codes were checked completely)
+![image](https://github.com/benizadi/Propelle.InterviewChallengeMay24/assets/12119278/31391b0e-dc43-4558-a73a-1d303cfb195e)
 
-Don't spend too long on this challenge (as a guideline: no more than 1 hour), but please include any thoughts about your solution and the changes you make.
 
-To show us your changes, fork this repository, and send a link back to us (make sure it's a publicly available repository)
-
-Have fun :)
+# Test Results:
+![Screenshot_2](https://github.com/benizadi/Propelle.InterviewChallengeMay24/assets/12119278/61d6f94f-1a47-415c-8ad0-e6854d5225f7)
